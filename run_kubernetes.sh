@@ -5,17 +5,18 @@
 # Step 1:
 # This is your Docker ID/path
 # dockerpath=<>
-projectname=project4
-dockerpath=dovanthao2404/$projectname
+dockerpath=minhtri188/devops-capstone
 
 # Step 2
 # Run the Docker Hub container with kubernetes
-kubectl create deploy $projectname --image=$dockerpath:v1.0.0
+kubectl run devops-capstone \
+      --image=$dockerpath \
+      --port=80 --labels app=devops-capstone
 
 # Step 3:
 # List kubernetes pods
-kubectl get deploy,rs,svc,pods
+kubectl get pods
 
 # Step 4:
 # Forward the container port to a host
-kubectl port-forward deployment.apps/$projectname --address 0.0.0.0 80:80
+kubectl port-forward devops-capstone 8000:80
