@@ -56,6 +56,23 @@ jobs:
           command: |
             chmod +x upload_docker.sh
             ./upload_docker.sh
+
+    setup-env:
+    docker:
+      - image: docker:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Install dependencies
+          command: |
+            apk add bash
+      - run:
+          name: Run
+          command: |
+            ./.circleci./containers.yml
+            
   create-cluster:
     docker:
       - image: docker:latest
