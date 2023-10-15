@@ -1,130 +1,117 @@
 version: 2.1
 
 jobs:
-  check-code:
+  build:
     docker:
-      - image: python:3.7.9
-    working_directory: ~/repo
-
+      - image: image: python:3.7.9
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            - v1-dependencies-
-
       - run:
           name: install dependencies
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            cd Docker
             make install
-            # Install hadolint
-            wget -O /bin/hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 &&\
-                chmod +x /bin/hadolint
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
       - run:
           name: run lint
           command: |
-            . venv/bin/activate
+            cd Docker
             make lint
-
-  upload-docker:
+  push-docker:
     docker:
-      - image: docker:latest
-    working_directory: ~/repo
+      - image: image: python:3.7.9
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.7
       - run:
-          name: Install dependencies
+          name: Build image
           command: |
-            apk add bash
-      - run:
-          name: Run
-          command: |
-            ./scripts/run_docker.sh
+            cd Docker
+            export DOCKER_PATH=$DOCKER_PATH
+            export DOCKER_PASS=$DOCKER_PASS
 
+            # Build image and add a descriptive tag
+            docker build --tag=capstone-squirtle-${CIRCLE_WORKFLOW_ID:0:7} .
+
+            # Get list of docker image
+            docker image ls
       - run:
-          name:
+          name: login and push image to docker
           command: |
-            ./scripts/upload_docker.sh
-  create-cluster:
+            # cd Docker
+            # export DOCKER_PATH=$DOCKER_PATH
+            # export DOCKER_PASS=$DOCKER_PASS
+
+            docker login -u ${DOCKER_PATH} -p ${DOCKER_PASS}
+
+            # Create tag
+            docker tag capstone-squirtle-${CIRCLE_WORKFLOW_ID:0:7} ${DOCKER_PATH}/capstone-squirtle-${CIRCLE_WORKFLOW_ID:0:7}
+
+            # Push image to a docker repository
+            docker push ${DOCKER_PATH}/capstone-squirtle-${CIRCLE_WORKFLOW_ID:0:7}
+  deploy:
     docker:
-      - image: docker:latest
-    working_directory: ~/repo
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - setup_remote_docker
-
       - run:
+          name: Install tar
           command: |
-            apk add curl tar
+            yum -y update
+            echo "----------install tar and gzip----------"
+            yum install -y tar gzip
+            tar --version
+      - attach_workspace:
+          at: ~/
       - run:
-          name: install eksctl
+          name: Install kubectl
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            mv ./kubectl /usr/bin/kubectl
+            echo "Download kubectl"
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+            echo "Install kubectl"
+            install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            echo "Check version of the installed kubectl"
+            kubectl version --client
       - run:
-          name: install eksctl
+          name: Install eksctl
           command: |
-            curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+            echo "Download, extract and install eksctl"
+            curl --silent --location "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+            echo "move eksctl to the bin folder"
             mv /tmp/eksctl /usr/local/bin
-            chmod +x /usr/local/bin/eksctl
-
       - run:
-          name: Create cluster
+          name: Create EKS cluster
           command: |
-            eksctl create cluster --name eksctl-captone-app-final --zones us-east-1a,us-east-1b
+            echo "----------create cluster----------"
+            eksctl create cluster --name "eksctl-capstone-${CIRCLE_WORKFLOW_ID:0:7}" --region=us-east-1
 
-  deploy-app:
-    docker:
-      - image: circleci/python:3.7.9
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          # https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-          command: |
-            sudo apt install -y tar gzip curl
-            # apk add curl tar
-            # pip3 install awscli
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-            aws eks update-kubeconfig --name eksctl-captone-app-final
+            echo "----------Check the health of clusters nodes----------"
+            kubectl get nodes
 
-      - run:
-          name: install eksctl
-          # https://devcoops.com/install-kubectl-on-alpine-linux/
-          command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/bin/kubectl
+            echo "----------Deploy an App from Dockerhub to the Kubernetes Cluster----------"
+            kubectl create deploy eksctl-capstone --image=${DOCKER_PATH}/capstone-squirtle-${CIRCLE_WORKFLOW_ID:0:7}
 
-      - run:
-          name: Create cluster
-          command: |
-            kubectl apply -f ./cloudfomation/deployment.yaml
-      - run:
-          command: |
-            kubectl get all
+            echo "----------Waiting until cluster is deployed successfully----------"
+            kubectl wait deployment eksctl-capstone --timeout=120s --for condition=Available=True
 
+            echo "----------See the status----------"
+            kubectl get deploy,rs,svc,pods
 
+            # echo "----------Get the pods name----------"
+            # export POD_NAME=$(kubectl get pods eksctl-capstone -o jsonpath='{.items[*].metadata.name}')
+
+            # echo "----------Port forward----------"
+            # kubectl port-forward ${POD_NAME} --address 0.0.0.0 5000:5000
+            
+            echo ""----------Expose a Kubernetes deployment as a service with a load balancer----------""
+            kubectl expose deployment eksctl-capstone --port=8080 --target-port=80 --name=eksctl-espeon --type=LoadBalancer
+            echo "----------See the status----------"
+            kubectl get deploy,rs,svc,pods
 workflows:
   default:
     jobs:
-      - check-code
-      - upload-docker:
-          requires: [check-code]
-      - create-cluster:
-          requires: [upload-docker]
-      - deploy-app:
-          requires: [create-cluster]
+      - build
+      - push-docker:
+          requires: [build]
+      - deploy:
+          requires: [push-docker]
