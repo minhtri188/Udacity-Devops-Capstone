@@ -56,22 +56,6 @@ jobs:
           command: |
             chmod +x upload_docker.sh
             ./upload_docker.sh
-
-    setup-env:
-      docker:
-        - image: docker:latest
-      working_directory: ~/repo
-      steps:
-        - checkout
-        - setup_remote_docker
-        - run:
-            name: Install dependencies
-            command: |
-              apk add bash
-        - run:
-            name: Run
-            command: |
-              ./.circleci./containers.yml
             
   create-cluster:
     docker:
@@ -97,10 +81,10 @@ jobs:
             mv /tmp/eksctl /usr/local/bin
             chmod +x /usr/local/bin/eksctl
 
-      # - run:
-      #     name: Create cluster
-      #     command: |
-      #       eksctl create cluster --name eksctl-capstone-app-project --zones us-east-1a,us-east-1b
+      - run:
+          name: Create cluster
+          command: |
+            eksctl create cluster --name eksctl-capstone-app-project --zones us-east-1a,us-east-1b
 
   deploy-app:
     docker:
