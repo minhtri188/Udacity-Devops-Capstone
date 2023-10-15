@@ -97,10 +97,10 @@ jobs:
             mv /tmp/eksctl /usr/local/bin
             chmod +x /usr/local/bin/eksctl
 
-      - run:
-          name: Create cluster
-          command: |
-            eksctl create cluster --name eksctl-capstone-app-project --zones us-east-1a,us-east-1b
+      # - run:
+      #     name: Create cluster
+      #     command: |
+      #       eksctl create cluster --name eksctl-capstone-app-project --zones us-east-1a,us-east-1b
 
   deploy-app:
     docker:
