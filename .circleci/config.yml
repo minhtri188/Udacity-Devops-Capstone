@@ -113,7 +113,7 @@ jobs:
       - run:
           name: Create cluster
           command: |
-            kubectl apply -f ./cloudfomation/deployment.yaml
+            kubectl apply -f ./Cloudfomation/deployment.yaml
       - run:
           command: |
             kubectl get all
