@@ -4,8 +4,12 @@
 
 
 ## Tools:
+* Circle CI
+* AWS CLI
+* Cloud Formation
+* AWS
 
 Reference:
-https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
+* https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
 
-https://devcoops.com/install-kubectl-on-alpine-linux/
+* https://devcoops.com/install-kubectl-on-alpine-linux/
