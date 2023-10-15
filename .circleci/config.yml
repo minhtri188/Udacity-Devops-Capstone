@@ -48,12 +48,12 @@ jobs:
       - run:
           name: Run
           command: |
-            ./run_docker.sh
+            ./scripts/run_docker.sh
 
       - run:
           name:
           command: |
-            ./upload_docker.sh
+            ./scripts/upload_docker.sh
   create-cluster:
     docker:
       - image: docker:latest
