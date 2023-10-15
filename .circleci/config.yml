@@ -48,6 +48,7 @@ jobs:
       - run:
           name: Run
           command: |
+            chmod +x run_docker.sh
             ./run_docker.sh
 
       - run:
