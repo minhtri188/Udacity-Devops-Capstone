@@ -9,6 +9,9 @@
 * Cloud Formation
 * AWS
 
+## Github:
+https://github.com/minhtri188/Udacity-Devops-Capstone
+
 Reference:
 * https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
 * https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
