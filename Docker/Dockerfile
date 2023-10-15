@@ -1,21 +1,8 @@
-FROM python:3.7.9
-
+FROM nginx:alpine
 ## Step 1:
-# Create a working directory
-WORKDIR /app
+## Remove the default file "index.html" and replace by the new one.
+RUN rm /usr/share/nginx/html/index.html
 
 ## Step 2:
-# Copy source code to working directory
-COPY . /app
-
-## Step 3:
-# Install packages from requirements.txt
-RUN pip install -r requirements.txt
-
-## Step 4:
-# Expose port 80
-EXPOSE 80
-
-## Step 5:
-# Run app.py at container launch
-CMD [ "python", "app.py" ]
+# Copy source code to nginx html folder
+COPY squirtle-app/index.html /usr/share/nginx/html
