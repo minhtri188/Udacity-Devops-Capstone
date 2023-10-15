@@ -12,4 +12,4 @@ docker images list
 
 # Step 3:
 # Run flask app
-docker run -p 8000:80 devops-capstone
+# docker run -p 8000:80 devops-capstone
