@@ -48,12 +48,12 @@ jobs:
       - run:
           name: Run
           command: |
-            ./scripts/run_docker.sh
+            .run_docker.sh
 
       - run:
           name:
           command: |
-            ./scripts/upload_docker.sh
+            .upload_docker.sh
   create-cluster:
     docker:
       - image: docker:latest
@@ -81,7 +81,7 @@ jobs:
       - run:
           name: Create cluster
           command: |
-            eksctl create cluster --name eksctl-captone-app-final --zones us-east-1a,us-east-1b
+            eksctl create cluster --name eksctl-capstone-app-project --zones us-east-1a,us-east-1b
 
   deploy-app:
     docker:
@@ -91,7 +91,6 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
-          # https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
           command: |
             sudo apt install -y tar gzip curl
             # apk add curl tar
@@ -99,11 +98,10 @@ jobs:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install
-            aws eks update-kubeconfig --name eksctl-captone-app-final
+            aws eks update-kubeconfig --name eksctl-capstone-app-project
 
       - run:
           name: install eksctl
-          # https://devcoops.com/install-kubectl-on-alpine-linux/
           command: |
             curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
             chmod +x ./kubectl
