@@ -12,8 +12,8 @@ dockerpath=minhtri188/devops-capstone
 # Authenticate & tag
 echo "Docker ID and Image: $dockerpath"
 docker login
-docker tag devops-capstone $dockerpath:latest
+docker tag devops-capstone $dockerpath
 
 # Step 3:
 # Push image to a docker repository
-docker push $dockerpath:latest
+docker push $dockerpath
