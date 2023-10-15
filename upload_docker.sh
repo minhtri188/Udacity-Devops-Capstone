@@ -11,7 +11,7 @@ dockerpath=minhtri188/devops-capstone
 # Step 2:
 # Authenticate & tag
 echo "Docker ID and Image: $dockerpath"
-docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+docker login -u minhtri188 -p Griffins@123
 docker tag devops-capstone $dockerpath
 
 # Step 3:
