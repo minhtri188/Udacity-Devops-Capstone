@@ -54,6 +54,7 @@ jobs:
       - run:
           name:
           command: |
+            chmod +x upload_docker.sh
             ./upload_docker.sh
   create-cluster:
     docker:
