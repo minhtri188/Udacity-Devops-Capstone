@@ -11,5 +11,5 @@
 
 Reference:
 * https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html
-
+* https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
 * https://devcoops.com/install-kubectl-on-alpine-linux/
